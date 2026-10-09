@@ -5,8 +5,8 @@ import type { DispatchBackfillResponse } from '@/lib/appsScript';
 
 // §7 — re-resolve dispatch rows that have no order.
 //
-// When Shopify or Velocity is down, parcels still get scanned out and still get
-// a row; they just land unresolved. Once the credential is fixed nothing would
+// When Shopify is down, parcels still get scanned out and still get a row;
+// they just land unresolved. Once the credential is fixed nothing would
 // otherwise revisit them, so the count stays wrong forever. This sits next to
 // the unresolved count rather than being a URL someone has to remember.
 export function BackfillButton({ unresolvedCount }: { unresolvedCount: number }) {
@@ -60,7 +60,7 @@ export function BackfillButton({ unresolvedCount }: { unresolvedCount: number })
         type="button"
         onClick={run}
         disabled={busy}
-        title="Re-resolve dispatch rows that have no order — useful once a dead Shopify or Velocity credential has been fixed"
+        title="Re-resolve dispatch rows that have no order — useful once a dead Shopify credential has been fixed"
         className="rounded-lg border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] text-accent transition-colors hover:bg-accent/20 disabled:opacity-40"
       >
         {busy ? `Re-resolving…${rounds > 1 ? ` (pass ${rounds})` : ''}` : 'Re-resolve unmatched'}

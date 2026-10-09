@@ -580,7 +580,7 @@ export type DispatchRow = {
   baseOrder: string;
   customerName: string;
   items: string;
-  /** How the order was matched: shopify-tracking | velocity | app | unresolved. */
+  /** How the order was matched: shopify-tracking | app | unresolved. */
   resolvedVia: string;
   /** Shopify's own status, verbatim. */
   carrierStatus?: string;
@@ -721,41 +721,6 @@ export async function fetchDispatchList(opts: {
   }
 }
 
-export type VelocityPingResponse = {
-  success: boolean;
-  httpCode?: number;
-  expires?: string;
-  daysLeft?: number;
-  /** Non-empty when the token expires within 14 days. */
-  warning?: string;
-  error?: string;
-};
-
-/**
- * Is the Velocity credential alive, and how long until it expires?
- *
- * Takes no key — but it is still called from the server like every sibling,
- * because "no auth required" is not "safe to expose in the browser", and
- * routing one call differently from the rest is how an inconsistency becomes a
- * habit.
- *
- * `warning` is the valuable field: an expiring token is a SCHEDULED outage,
- * and the only upstream failure here that can be fixed before it happens.
- */
-export const fetchVelocityPing = cache(_fetchVelocityPing);
-
-/** Memoised per request, for the same reason as the Shopify probe. */
-async function _fetchVelocityPing(): Promise<VelocityPingResponse> {
-  try {
-    const base = requireEnv('DROPPY_MAIN_URL');
-    const res = await fetchJsonOnce<VelocityPingResponse>(`${base}?action=velocityPing`, 20_000);
-    if (typeof res.success !== 'boolean') return { success: false, error: 'velocityPing is not deployed' };
-    return res;
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'unreachable' };
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Split orders — which products went into which box
 //
@@ -879,10 +844,10 @@ export async function fetchSplitList(
 // ---------------------------------------------------------------------------
 // §7 — Backfilling unresolved dispatch rows
 //
-// When Shopify or Velocity is down, parcels still get scanned out and still get
-// a row; they just land with no order against them. Once the credential is
-// fixed, nothing would otherwise ever revisit those rows, so the unresolved
-// count would stay wrong forever.
+// When Shopify is down, parcels still get scanned out and still get a row;
+// they just land with no order against them. Once the credential is fixed,
+// nothing would otherwise ever revisit those rows, so the unresolved count
+// would stay wrong forever.
 // ---------------------------------------------------------------------------
 
 export type DispatchBackfillResponse = {
